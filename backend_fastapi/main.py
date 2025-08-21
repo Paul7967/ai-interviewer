@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 import uuid
@@ -9,6 +10,20 @@ app = FastAPI(
     title="AI Interviewer API",
     description="Простой API для проведения технических интервью по JavaScript",
     version="1.0.0"
+)
+
+# Настройка CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",  # Frontend в development
+        "http://localhost:3000",  # Альтернативный порт
+        "http://frontend:5173",   # Frontend в Docker
+        "http://127.0.0.1:5173",  # Localhost альтернативный
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Модели данных (Pydantic)

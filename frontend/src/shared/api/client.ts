@@ -3,7 +3,7 @@ import axios from 'axios';
 // В development используем относительные пути для работы через Vite proxy
 // В production используем полный URL
 const API_BASE_URL = import.meta.env.DEV 
-  ? '' // Пустая строка для относительных путей
+  ? '' // В development используем относительные пути для Vite proxy
   : (import.meta.env.VITE_API_URL || 'http://localhost:8000');
 
 // Создание axios инстанса

@@ -10,7 +10,7 @@ export default defineConfig({
     proxy: {
       // Перенаправляем все запросы к /api на backend
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://backend:8000',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path,
@@ -28,18 +28,18 @@ export default defineConfig({
       },
       // Также можно добавить proxy для OpenAPI схемы
       '/openapi.json': {
-        target: 'http://localhost:8000',
+        target: 'http://backend:8000',
         changeOrigin: true,
         secure: false,
       },
       // И для документации API
       '/docs': {
-        target: 'http://localhost:8000',
+        target: 'http://backend:8000',
         changeOrigin: true,
         secure: false,
       },
       '/redoc': {
-        target: 'http://localhost:8000',
+        target: 'http://backend:8000',
         changeOrigin: true,
         secure: false,
       },
