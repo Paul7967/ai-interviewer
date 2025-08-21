@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-py"
+  interface = "sync"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  name      String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  
+  // Связи
+  interviews Interview[]
+  
+  @@map("users")
+}
+
+model Question {
+  id          String   @id @default(cuid())
+  text        String
+  category    String   // "javascript", "react", "nodejs", etc.
+  difficulty  String   // "easy", "medium", "hard"
+  correctAnswer String
+  explanation String?
+  tags        String[] // ["arrays", "functions", "async"]
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Связи
+  interviewAnswers InterviewAnswer[]
+  
+  @@map("questions")
+}
+
+model Interview {
+  id        String   @id @default(cuid())
+  userId    String
+  status    String   @default("in_progress") // "in_progress", "completed", "cancelled"
+  score     Float?
+  totalQuestions Int @default(0)
+  completedQuestions Int @default(0)
+  startedAt DateTime @default(now())
+  endedAt   DateTime?
+  feedback  Json?    // Общий фидбэк по интервью
+  
+  // Связи
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interviewAnswers InterviewAnswer[]
+  
+  @@map("interviews")
+}
+
+model InterviewAnswer {
+  id          String   @id @default(cuid())
+  interviewId String
+  questionId  String
+  userAnswer  String
+  isCorrect   Boolean?
+  score       Float?   // Оценка за ответ (0-10)
+  feedback    String?  // Фидбэк по конкретному ответу
+  timeSpent   Int?     // Время в секундах
+  answeredAt  DateTime @default(now())
+  
+  // Связи
+  interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  question  Question  @relation(fields: [questionId], references: [id])
+  
+  @@map("interview_answers")
+}
