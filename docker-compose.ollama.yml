@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # Ollama с поддержкой GPU
+  ollama:
+    build:
+      context: ./ollama
+      dockerfile: Dockerfile
+    container_name: ai-interviewer-ollama
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_ORIGINS=*
+      - OLLAMA_DEBUG=INFO
+    volumes:
+      - ollama_models:/root/.ollama/models
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    networks:
+      - ai-interviewer-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Мониторинг GPU (опционально)
+  gpu-monitor:
+    image: nvidia/cuda:12.2.0-base-ubuntu22.04
+    container_name: ai-interviewer-gpu-monitor
+    command: >
+      sh -c "
+        while true; do
+          echo '=== GPU Status ==='
+          nvidia-smi --query-gpu=name,memory.used,memory.total,utilization.gpu,temperature.gpu --format=csv,noheader,nounits
+          echo '================='
+          sleep 30
+        done
+      "
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - ai-interviewer-network
+    restart: unless-stopped
+
+volumes:
+  ollama_models:
+    driver: local
+  ollama_data:
+    driver: local
+
+networks:
+  ai-interviewer-network:
+    external: true

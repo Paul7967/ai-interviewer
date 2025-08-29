@@ -96,6 +96,39 @@ services:
       - ai-interviewer-network
     restart: unless-stopped
 
+  # Ollama с поддержкой GPU
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ai-interviewer-ollama
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_ORIGINS=*
+      - OLLAMA_DEBUG=INFO
+    volumes:
+      - ollama_models:/root/.ollama/models
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    networks:
+      - ai-interviewer-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          memory: 8G
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
   # Nginx Reverse Proxy
   nginx:
     image: nginx:alpine
@@ -145,6 +178,10 @@ volumes:
   redis_data:
   prometheus_data:
   grafana_data:
+  ollama_models:
+    driver: local
+  ollama_data:
+    driver: local
 
 networks:
   ai-interviewer-network:
